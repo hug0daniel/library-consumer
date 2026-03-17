@@ -1,0 +1,112 @@
+### POST WITH-NULL-LIBRARY-EVENT-ID
+POST http://localhost:8080/v1/libraryevent
+Content-Type: application/json
+
+{
+  "libraryEventId": null,
+  "libraryEventType": "NEW",
+  "bookDTO": {
+    "bookId": 456,
+    "bookName": "Kafka Using Spring Boot",
+    "bookAuthor": "Dilip"
+  }
+}
+
+###
+
+### PUT WITH ID - 1
+
+#### ID = 1
+PUT http://localhost:8080/v1/libraryevent
+Content-Type: application/json
+
+{
+  "libraryEventId": 1,
+  "libraryEventType": "UPDATE",
+  "bookDTO": {
+    "bookId": 456,
+    "bookName": "Kafka Using Spring Boot 2.X",
+    "bookAuthor": "Dilip"
+  }
+}
+
+#### ID = 2
+PUT http://localhost:8080/v1/libraryevent
+Content-Type: application/json
+
+{
+  "libraryEventId": 2,
+  "libraryEventType": "UPDATE",
+  "bookDTO": {
+    "bookId": 456,
+    "bookName": "Kafka Using Spring Boot 2.X",
+    "bookAuthor": "Dilip"
+  }
+}
+
+###
+
+### PUT WITH ID
+
+#### ID = 123
+PUT http://localhost:8080/v1/libraryevent
+Content-Type: application/json
+
+{
+  "libraryEventId": 123,
+  "libraryEventType": "UPDATE",
+  "bookDTO": {
+    "bookId": 456,
+    "bookName": "Kafka Using Spring Boot",
+    "bookAuthor": "Dilip"
+  }
+}
+
+#### ID = 999
+PUT http://localhost:8080/v1/libraryevent
+Content-Type: application/json
+
+{
+  "libraryEventId": 999,
+  "libraryEventType": "UPDATE",
+  "bookDTO": {
+    "bookId": 456,
+    "bookName": "Kafka Using Spring Boot",
+    "bookAuthor": "Dilip"
+  }
+}
+
+#### ID = 2
+PUT http://localhost:8080/v1/libraryevent
+Content-Type: application/json
+
+{
+  "libraryEventId": 2,
+  "libraryEventType": "UPDATE",
+  "bookDTO": {
+    "bookId": 456,
+    "bookName": "Kafka Using Spring Boot",
+    "bookAuthor": "Dilip"
+  }
+}
+
+###
+
+### PUT WITHOUT ID
+PUT http://localhost:8080/v1/libraryevent
+Content-Type: application/json
+
+{
+  "libraryEventId": null,
+  "libraryEventType": "UPDATE",
+  "bookDTO": {
+    "bookId": 456,
+    "bookName": "Kafka Using Spring Boot",
+    "bookAuthor": "Dilip"
+  }
+}
+
+###
+
+### Kafka DLT Topic
+# ./kafka-topics.sh --create --topic library-events.DLT --replication-factor 1 --partitions 4 --bootstrap-server localhost:9092
