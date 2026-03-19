@@ -1,11 +1,7 @@
 package com.learnkafka.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-import java.util.UUID;
 
 @Entity
 @AllArgsConstructor
@@ -23,5 +19,5 @@ public class LibraryEvent {
 
         @OneToOne(mappedBy = "libraryEvent", cascade = {CascadeType.ALL})
         @ToString.Exclude
-        private Book bookId;
+        private Book book;
 }
