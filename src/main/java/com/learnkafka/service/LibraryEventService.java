@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.Optional;
+
 @Service
 @Slf4j
 public class LibraryEventService {
@@ -16,22 +18,31 @@ public class LibraryEventService {
     private ObjectMapper objectMapper;
     @Autowired
     private LibraryEventRepository libraryEventRepository;
-    public void processLibraryEvent(ConsumerRecord<Integer,String> consumerRecord) {
+
+    public void processLibraryEvent(ConsumerRecord<Integer, String> consumerRecord) {
 
         final LibraryEvent libraryEvent = objectMapper.readValue(consumerRecord.value(), LibraryEvent.class);
 
-       log.info("LibraryEvent: {}", libraryEvent);
+        log.info("Event Type: {}", libraryEvent.getLibraryEventType());
 
-       switch (libraryEvent.getLibraryEventType()) {
-           case NEW:
-           //save operation
-           persist(libraryEvent);
-           break;
-           case UPDATE:
-               //UPDATE operation
-           break;
-           default: log.error("Invalid Library event type");
-       }
+        switch (libraryEvent.getLibraryEventType()) {
+            case NEW:
+                //save operation
+                persist(libraryEvent);
+                log.info("Successfully persisted: Event {} with the book {}", libraryEvent.getLibraryEventId(), libraryEvent.getBook());
+
+                break;
+            case UPDATE:
+                //UPDATE operation
+
+                validate(libraryEvent);
+                persist(libraryEvent);
+                log.info("Successfully Updated: Event {} with the book {}", libraryEvent.getLibraryEventId(), libraryEvent.getBook());
+
+                break;
+            default:
+                log.error("Invalid Library event type");
+        }
     }
 
     private void persist(LibraryEvent libraryEvent) {
@@ -43,7 +54,24 @@ public class LibraryEventService {
         libraryEvent.getBook().setLibraryEvent(libraryEvent);
 
         libraryEventRepository.save(libraryEvent);
+    }
 
-        log.info("Successfully persisted the library event: {} with the book {}", libraryEvent, libraryEvent.getBook());
+
+    private void validate(LibraryEvent libraryEvent) {
+
+        if (libraryEvent.getLibraryEventId() == null) {
+            throw new IllegalArgumentException("Event ID is missing!");
+        }
+
+
+        Optional<LibraryEvent> libraryEventOptional = libraryEventRepository.findById(libraryEvent.getLibraryEventId());
+
+        if (libraryEventOptional.isEmpty()) {
+            throw new IllegalArgumentException("Event ID IS NOT VALID");
+        }
+
+        log.info("Validation successful");
+
+
     }
 }
