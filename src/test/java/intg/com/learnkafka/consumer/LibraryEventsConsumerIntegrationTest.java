@@ -1,6 +1,8 @@
 package com.learnkafka.consumer;
 
 
+import com.learnkafka.entity.Book;
+import com.learnkafka.entity.EventType;
 import com.learnkafka.entity.LibraryEvent;
 import com.learnkafka.repository.LibraryEventRepository;
 import com.learnkafka.service.LibraryEventService;
@@ -17,8 +19,10 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -43,7 +47,10 @@ public class LibraryEventsConsumerIntegrationTest {
     private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
 
     @Autowired
-    private LibraryEventRepository libraryEventRepository; // ← this + RestTestClient replaces TestRestTemplate
+    private LibraryEventRepository libraryEventRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockitoSpyBean
     LibraryEventsConsumer libraryEventsConsumerSpy;
@@ -66,7 +73,7 @@ public class LibraryEventsConsumerIntegrationTest {
     }
 
     @Test
-    void publishNewLibraryEvent() throws ExecutionException, InterruptedException {
+    void postNewLibraryEvent() throws ExecutionException, InterruptedException {
         //given
         String request = "{\"libraryEventId\": null, \"libraryEventType\": \"NEW\", \"book\": {\"bookName\": \"Kafka Using Spring Boot\", \"bookAuthor\": \"Dilip\"}}";
 
@@ -74,7 +81,6 @@ public class LibraryEventsConsumerIntegrationTest {
 
         // when
         CountDownLatch latch = new CountDownLatch(1);
-
         latch.await(3, TimeUnit.SECONDS);
 
         //then
@@ -90,6 +96,56 @@ public class LibraryEventsConsumerIntegrationTest {
         });
 
 
+    }
+
+
+    @Test
+    void updateLibraryEvent() throws ExecutionException, InterruptedException {
+        //given
+        String request = "{\"libraryEventId\": null, \"libraryEventType\": \"UPDATE\", \"book\": {\"bookName\": \"Kafka Using Spring Boot\", \"bookAuthor\": \"Dilip\"}}";
+        LibraryEvent libraryEvent = objectMapper.readValue(request,LibraryEvent.class);
+
+        libraryEvent.getBook().setLibraryEvent(libraryEvent);
+
+        libraryEventRepository.save(libraryEvent);
+
+        // publish the update event
+        Book updatedBook = Book.builder()
+                .bookId(1)
+                .bookAuthor("Picasso")
+                .bookName("Insomnia").build();
+
+        libraryEvent.setLibraryEventType(EventType.UPDATE);
+        libraryEvent.setBook(updatedBook);
+
+        String updatedJson = objectMapper.writeValueAsString(libraryEvent);
+        kafkaTemplate.sendDefault(libraryEvent.getLibraryEventId(),updatedJson).get();
+
+
+        // when
+        CountDownLatch latch = new CountDownLatch(1);
+        latch.await(3, TimeUnit.SECONDS);
+
+        // then
+        Optional<LibraryEvent> actualEvent = libraryEventRepository.findById(libraryEvent.getLibraryEventId());
+
+        assertEquals("Insomnia", actualEvent.get().getBook().getBookName());
+    }
+
+    @Test
+    void updateLibraryEvent_null_libraryEvent() throws ExecutionException, InterruptedException {
+        //given
+        String request = "{\"libraryEventId\": null, \"libraryEventType\": \"UPDATE\", \"book\": {\"bookName\": \"Kafka Using Spring Boot\", \"bookAuthor\": \"Dilip\"}}";
+        kafkaTemplate.sendDefault(request).get();
+
+        // when
+        CountDownLatch latch = new CountDownLatch(1);
+        latch.await(5, TimeUnit.SECONDS);
+
+
+        // then
+        verify(libraryEventsConsumerSpy,  times(3)).onMessage(isA(ConsumerRecord.class));
+        verify(libraryEventServiceSpy,  times(3)).processLibraryEvent(isA(ConsumerRecord.class));
     }
 
 }
