@@ -1,5 +1,6 @@
 package com.learnkafka.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.kafka.autoconfigure.ConcurrentKafkaListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,13 +11,24 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
 
+@Slf4j
 @Configuration
 @EnableKafka
 public class LibraryEventsConsumerConfig {
 
     private DefaultErrorHandler errorHandler(){
+
+        //List<Exception> exceptionIgnoreList = List.of(IllegalArgumentException.class);
         final FixedBackOff fixedBackOff = new FixedBackOff(1000L,2);
-        return new DefaultErrorHandler(fixedBackOff);
+        final DefaultErrorHandler errorHandler = new DefaultErrorHandler(fixedBackOff);
+
+        errorHandler
+                .setRetryListeners( ((record, ex, deliveryAttempt) -> {
+                    assert ex != null;
+                    log.info("Failed Record in RETRY LISTENER, Exception: {}, deliveryAttempt: {} ",ex.getMessage(),deliveryAttempt);
+                }));
+
+        return errorHandler;
     }
     @Bean
     ConcurrentKafkaListenerContainerFactory<?,?> kafkaListenerContainerFactory(ConcurrentKafkaListenerContainerFactoryConfigurer configurer, ConsumerFactory<Object,Object> kafkaconsumerFactory){
