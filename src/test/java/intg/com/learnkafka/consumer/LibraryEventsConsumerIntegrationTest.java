@@ -5,11 +5,13 @@ import com.learnkafka.entity.Book;
 import com.learnkafka.entity.EventType;
 import com.learnkafka.entity.LibraryEvent;
 import com.learnkafka.repository.LibraryEventRepository;
-import com.learnkafka.service.LibraryEventService;
+import com.learnkafka.service.ILibraryEventProcessorService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
@@ -21,6 +23,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -40,22 +43,21 @@ import static org.mockito.Mockito.verify;
 public class LibraryEventsConsumerIntegrationTest {
 
     private static final int NUMBER_OF_PARTITIONS = 3;
+    private static final Logger log = LoggerFactory.getLogger(LibraryEventsConsumerIntegrationTest.class);
 
     @Autowired
     private KafkaTemplate<Integer, String> kafkaTemplate;
     @Autowired
     private KafkaListenerEndpointRegistry kafkaListenerEndpointRegistry;
-
     @Autowired
     private LibraryEventRepository libraryEventRepository;
-
     @Autowired
     private ObjectMapper objectMapper;
 
     @MockitoSpyBean
     LibraryEventsConsumer libraryEventsConsumerSpy;
     @MockitoSpyBean
-    LibraryEventService libraryEventServiceSpy;
+    ILibraryEventProcessorService libraryEventServiceSpy;
 
     @BeforeEach
     void setUp() {
@@ -78,7 +80,10 @@ public class LibraryEventsConsumerIntegrationTest {
         String request = "{\"libraryEventId\": null, \"libraryEventType\": \"NEW\", \"book\": {\"bookName\": \"Kafka Using Spring Boot\", \"bookAuthor\": \"Dilip\"}}";
 
         kafkaTemplate.sendDefault(request).get();
-
+        final List<String> lalal = new ArrayList<>();
+        lalal.add("libraryEventId");
+        lalal.add("libraryEventType");
+        lalal.removeFirst();
         // when
         CountDownLatch latch = new CountDownLatch(1);
         latch.await(3, TimeUnit.SECONDS);
