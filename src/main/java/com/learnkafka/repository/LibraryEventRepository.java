@@ -1,8 +1,7 @@
 package com.learnkafka.repository;
 
 import com.learnkafka.entity.LibraryEvent;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-
-public interface LibraryEventRepository extends CrudRepository<LibraryEvent,Integer> {
+public interface LibraryEventRepository extends JpaRepository<LibraryEvent,Integer> {
 }
