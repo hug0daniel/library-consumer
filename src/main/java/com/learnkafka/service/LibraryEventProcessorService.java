@@ -14,7 +14,7 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class LibraryEventService {
+public class LibraryEventProcessorService implements ILibraryEventProcessorService {
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -27,7 +27,7 @@ public class LibraryEventService {
         log.info("Event Type: {}", libraryEvent.getLibraryEventType());
 
 
-        if (libraryEvent.getLibraryEventId() == 999) {
+        if (libraryEvent.getLibraryEventId() != null && libraryEvent.getLibraryEventId() == 999) {
             throw new RecoverableDataAccessException("Temporary Network Issue");
         }
 
@@ -40,11 +40,9 @@ public class LibraryEventService {
                 break;
             case UPDATE:
                 //UPDATE operation
-
                 validate(libraryEvent);
                 persist(libraryEvent);
                 log.info("Successfully Updated: Event {} with the book {}", libraryEvent.getLibraryEventId(), libraryEvent.getBook());
-
                 break;
             default:
                 log.error("Invalid Library event type");
