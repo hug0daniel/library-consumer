@@ -1,8 +1,14 @@
 spring:
   profiles:
     active: local
+  kafka:
+    template:
+      default-topic:
 server:
   port: 8081
+topics:
+  retry: 'library-events.RETRY'
+  dlt: 'librar-events.DLT'
 ---
 spring:
   config:
