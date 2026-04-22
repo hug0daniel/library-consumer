@@ -1,2 +1,2 @@
 # library-consumer
-This repo is consuming messages
+Simple consumer microservice using Spring with kakfa.
