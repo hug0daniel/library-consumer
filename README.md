@@ -18,7 +18,7 @@ It demonstrates how to integrate with Apache Kafka using Spring Kafka for reliab
 - 📨 Apache Kafka
 - 🏗️ Gradle
 
-## 📖 Related Projects
+## 📖 Related Projects 
 This consumer works alongside the library-producer service in the https://github.com/hug0daniel/library-producer
 
 ---
